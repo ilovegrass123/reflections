@@ -22,7 +22,7 @@ module physics(clock, reset, go, set, x, y);
     assign out = !(x >=0 & x <= x_bound);
     // ------------------------------------------- //
 
-    logic signed [31:0] velocity_x, velocity_y; // seconds per pixel //
+    int velocity_x, velocity_y; // seconds per pixel //
     logic action; // activates the movement modules //
 
     // STATE  CONTROL //
@@ -42,33 +42,53 @@ module physics(clock, reset, go, set, x, y);
             MOVE:
                 if (out)
                     result = OFF; 
+                else
+                    result = MOVE;
             OFF:
                 result = OFF;
         endcase
     end
 
-    int threshold_x, threshold_y;
+    logic [63:0] threshold_x, threshold_y;
     always_comb begin
         case(occurrence)
+            threshold_x = CLOCK_SPEED*velocity_x;
+            threshold_y = CLOCK_SPEED*velocity_y;
             STOP: begin
                 set = 1;
-                velocity_x = 1/3;
-                velocity_y = 0;
                 action = 0;
             end
             MOVE: begin
                 set = 0;
                 action = 1;
-                threshold_x = CLOCK_SPEED*velocity_x;
-                threshold_y = CLOCK_SPEED*velocity_y;
+            end
+            OFF: begin
+                set = 0;
+                action = 0;
+            end
+        endcase
+    end
+
+    logic direction_x, direction_y;
+    always_ff @(posedge clock) begin
+        case(occurrence)
+            STOP: begin
+                velocity_x <= 1/3;
+                velocity_y <= 0;
+            end
+            MOVE: begin
+                if (wall)
+                    direction_y <= !direction_y;
+                if (paddle)
+                    direction_x <= !direction_x;
             end
         endcase
     end
 
     // ------------- //
 
-    trajectory tx #(8) (.threshold(threshold_x), .active(action), .coordinate(x), .clock(clock));
-    trajectory ty #(7) (.threshold(threshold_y), .active(action), .coordinate(y), .clock(clock));
+    trajectory tx #(8) (.threshold(threshold_x), .active(action), .coordinate(x), .clock(clock), .direction(direction_x));
+    trajectory ty #(7) (.threshold(threshold_y), .active(action), .coordinate(y), .clock(clock), .direction(direction_y));
 
 
 
