@@ -26,13 +26,30 @@ output logic vga_plot, output logic vga_x[7:0], output logic [6:0] vga_y);
             5: next_octant = 6;
             6: next_octant = 7;
             7: next_octant = 8;
-            8: next_octant =  DONE;
+            8:
+                if (off_y <= off_x)
+                    next_octant = 1;
+                else 
+                    next_octant = INIT;
             DONE:
                 if (c_x != x | c_y != y)
                     next_octant = 1;
                 else
                     next_octant = DONE;
         endcase
+    end
+
+    always_ff @(posedge clock) begin
+        if (octant == 8) begin
+            off_y = off_y + 1;
+            if (crit <=0) begin
+                crit <= crit + 2*off_y + 1
+            end
+            else begin
+                off_x <= off_x - 1;
+                crit <= crit + 2 * (off_y-off_x) + 1;
+            end
+        end
     end
 
     assign off_x = radius;
