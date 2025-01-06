@@ -3,9 +3,9 @@ module physics(clock, reset, go, set, x, y);
     input logic clock, reset, go;
     output logic [8:0] x;
     output logic [7:0] y;
-    output logic set;
+    output logic set; // ready signal //
 
-    enum{STOP, MOVE, OFF} occurrence, result; // chat CALC is short for calculator
+    enum{STOP, MOVE, OFF} occurrence, result;
     enum{CALC, DISPLACE} ss_x, ss_y;
 
     int CLOCK_SPEED;
@@ -39,6 +39,8 @@ module physics(clock, reset, go, set, x, y);
             STOP:
                 if(go)
                     result = MOVE;
+                else
+                    result = STOP;
             MOVE:
                 if (out)
                     result = OFF; 
@@ -89,7 +91,5 @@ module physics(clock, reset, go, set, x, y);
 
     trajectory tx #(8) (.threshold(threshold_x), .active(action), .coordinate(x), .clock(clock), .direction(direction_x));
     trajectory ty #(7) (.threshold(threshold_y), .active(action), .coordinate(y), .clock(clock), .direction(direction_y));
-
-
 
 endmodule
