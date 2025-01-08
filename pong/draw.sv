@@ -30,7 +30,7 @@ output logic vga_plot, output logic vga_x[7:0], output logic [6:0] vga_y);
                 if (off_y <= off_x)
                     next_octant = 1;
                 else 
-                    next_octant = INIT;
+                    next_octant = DONE;
             DONE:
                 if (c_x != x | c_y != y)
                     next_octant = 1;
@@ -43,13 +43,60 @@ output logic vga_plot, output logic vga_x[7:0], output logic [6:0] vga_y);
         if (octant == 8) begin
             off_y = off_y + 1;
             if (crit <=0) begin
-                crit <= crit + 2*off_y + 1
+                crit <= crit + 2*off_y + 1;
             end
             else begin
                 off_x <= off_x - 1;
                 crit <= crit + 2 * (off_y-off_x) + 1;
             end
         end
+        if (octant == DONE | octant == INIT) begin
+            c_x <= x;
+            c_y <= y;
+        end
+    end
+
+    always_comb begin
+        case (octant)
+            vga_x = 8'd80;
+            vga_y = 7'd60;
+            vga_plot = 1;
+            INIT: begin
+                vga_plot = 0;
+            end
+            1: begin
+                vga_x = c_x + off_x;
+                vga_y = c_y + off_y;
+            end
+            2: begin
+                vga_x = c_x + off_y;
+                vga_y = c_y + off_x;
+            end
+            3: begin
+                vga_x = c_x - off_y;
+                vga_y = c_y + off_x;
+            end
+            4: begin
+                vga_x = c_x - off_x;
+                vga_y = c_y + off_y;
+            end
+            5: begin
+                vga_x = c_x - off_x;
+                vga_y = c_y - off_y;
+            end
+            6: begin
+                vga_x = c_x - off_y;
+                vga_y = c_y - off_x;
+            end
+            7: begin
+                vga_x = c_x + off_y;
+                vga_y = c_y - off_x;
+            end
+            8: begin
+                vga_x = c_x + off_x;
+                vga_y = c_y - off_y;
+            end
+        endcase
     end
 
     assign off_x = radius;

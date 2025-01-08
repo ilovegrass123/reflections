@@ -34,7 +34,7 @@ module trajectory #(parameter cwidth) (clock, threshold, coordinate, active, dir
                 else
                     n_ss = WAIT;
             WAIT:
-                if (timer >= threshold)
+                if (timer > threshold)
                     n_ss = EXECUTE;
                 else
                     n_ss = WAIT;
